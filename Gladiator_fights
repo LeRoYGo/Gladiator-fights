@@ -1,0 +1,252 @@
+using System;
+using System.Collections.Generic;
+
+namespace Gladiator_fights
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Arena arena = new Arena();
+            while (true)
+            {
+                Console.WriteLine("1 - Выбрать бойцов и начать бой\n2 - Информация о бойцах");
+                int userInpyt = Convert.ToInt32(Console.ReadLine());
+                switch (userInpyt)
+                {
+                    case 1:
+                        arena.ChoosingFighter();
+                        break;
+                    case 2:
+                        arena.PersonInfo();
+                        Console.ReadKey();
+                        break;
+                }
+                Console.Clear();
+            }
+        }
+    }
+
+    class Arena
+    {
+        private List<Warrior> _warriors;
+        private List<Warrior> _warriorsUserInpyt = new List<Warrior>();
+
+        public Arena()
+        {
+            _warriors = new List<Warrior> { new Knight("Воин-Солдат", 100, 20, 70), new Magician("Маг-Черадей", 80, 50, 20, 100), new Engineer("Инжинер", 80, 30, 50, 15),
+                                           new Archer("Лучник", 60, 15, 35, 20), new Healer("Медик", 150, 12, 20, 25) };
+        }
+
+        public void PersonInfo()
+        {
+            for (int i = 0; i < _warriors.Count; i++)
+            {
+                _warriors[i].Info();
+            }
+        }
+        public void ChoosingFighter()
+        {
+            Console.WriteLine("Выберите бойцов:\n1- Воин-Солдат\n2- Маг-Черадей\n3- Инжинер\n4- Лучник\n5- Медик\n");
+            Console.Write("Боец №1: ");
+            int userInpyt1 = Convert.ToInt32(Console.ReadLine()) - 1;
+            Console.Write("Боуц №2: ");
+            int userInpyt2 = Convert.ToInt32(Console.ReadLine()) - 1;
+            _warriorsUserInpyt.Add(_warriors[userInpyt1]);
+            _warriorsUserInpyt.Add(_warriors[userInpyt2]);
+            Console.Clear();
+            for (int i = 0; i < _warriorsUserInpyt.Count; i++)
+            {
+                _warriorsUserInpyt[i].Info();
+            }
+            Console.WriteLine("Нажмите кнопку для начала боя");
+            Console.ReadKey();
+            Console.Clear();
+            while (true)
+            {
+                Battle();
+            }
+        }
+        private void Battle()
+        {
+            int round = 0;
+            while (_warriorsUserInpyt[0].Health > 0 && _warriorsUserInpyt[1].Health > 0)
+            {
+                Console.WriteLine($"жизни бойца №1 {_warriorsUserInpyt[0].Health}");
+                Console.WriteLine($"жизни бойца №2 {_warriorsUserInpyt[1].Health}");
+                _warriorsUserInpyt[0].TakingDamage(_warriorsUserInpyt[1].Damage);
+                _warriorsUserInpyt[1].TakingDamage(_warriorsUserInpyt[0].Damage);
+                if (round == 2)
+                {
+                    _warriorsUserInpyt[0].AbilityStrike();
+                    _warriorsUserInpyt[1].AbilityStrike();
+                    round = 0;
+                }
+                round += 1;
+            }
+            if (_warriorsUserInpyt[0].Health <= 0)
+            {
+                Console.WriteLine("Победил " + _warriorsUserInpyt[1].NameWarrior);
+            }
+            else if (_warriorsUserInpyt[1].Health <= 0)
+            {
+                Console.WriteLine("Победил " + _warriorsUserInpyt[0].NameWarrior);
+
+            }
+            Console.ReadKey();
+        }
+    }
+
+    class Warrior
+    {
+        public string NameWarrior { get; private set; }
+        public int Armor { get; private set; }
+        public int Health { get; private set; }
+        public int Damage { get; private set; }
+
+        public Warrior(string nameWarrior, int health, int damage, int armor)
+        {
+            NameWarrior = nameWarrior;
+            Health = health;
+            Damage = damage;
+            Armor = armor;
+        }
+
+        public virtual void Info()
+        {
+            Console.WriteLine($"Тип: {NameWarrior}\nЗдоровье: {Health}\nБроня: {Armor}\nУрон: {Damage}");
+        }
+        public void TakingDamage(int damage)
+        {
+            Health -= Armor - damage;
+        }
+        public void ChangeHealthAbilityStrike()
+        {
+            Health = 200;
+        }
+        public void ChangeDamageAbilityStrike()
+        {
+            Damage *= 2;
+        }
+        public virtual void AbilityStrike()
+        {
+        }
+    }
+
+    class Knight : Warrior
+    {
+        public Knight(string nameWarrior, int health, int damage, int armor) : base(nameWarrior, health, damage, armor)
+        {
+        }
+        public override void Info()
+        {
+            base.Info();
+            Console.WriteLine("Способность: Режим ярости");
+            Console.WriteLine("--------------------------------------------------------------------");
+        }
+        public override void AbilityStrike()
+        {
+            ChangeDamageAbilityStrike();
+        }
+    }
+
+    class Magician : Warrior
+    {
+        private int _mana;
+
+        public Magician(string nameWarrior, int health, int damage, int armor, int mana) : base(nameWarrior, health, damage, armor)
+        {
+            _mana = mana;
+        }
+
+        public override void Info()
+        {
+            base.Info();
+            Console.WriteLine($"Мана: {_mana}\nСпособность: Выстрел магическими шарами");
+            Console.WriteLine("--------------------------------------------------------------------");
+        }
+        public override void AbilityStrike()
+        {
+            if (_mana > 40)
+            {
+                ChangeDamageAbilityStrike();
+                _mana -= 40;
+            }
+        }
+    }
+
+    class Engineer : Warrior
+    {
+        private int _mechanisms;
+
+        public Engineer(string nameWarrior, int health, int damage, int armor, int mechanisms) : base(nameWarrior, health, damage, armor)
+        {
+            _mechanisms = mechanisms;
+        }
+
+        public override void Info()
+        {
+            base.Info();
+            Console.WriteLine($"Механизмы: {_mechanisms}\nСпособность: Постройка царь-пушки");
+            Console.WriteLine("--------------------------------------------------------------------");
+        }
+        public override void AbilityStrike()
+        {
+            if (_mechanisms >= 50)
+            {
+                ChangeDamageAbilityStrike();
+                _mechanisms -= 50;
+            }
+        }
+    }
+
+    class Archer : Warrior
+    {
+        private int _arrows;
+
+        public Archer(string nameWarrior, int health, int damage, int armor, int arrows) : base(nameWarrior, health, damage, armor)
+        {
+            _arrows = arrows;
+        }
+
+        public override void Info()
+        {
+            base.Info();
+            Console.WriteLine($"Стрелы: {_arrows}\nСпособность: Шквал стрел");
+            Console.WriteLine("--------------------------------------------------------------------");
+        }
+        public override void AbilityStrike()
+        {
+            if (_arrows >= 25)
+            {
+                ChangeDamageAbilityStrike();
+                _arrows -= 25;
+            }
+        }
+    }
+
+    class Healer : Warrior
+    {
+        private int _potions;
+
+        public Healer(string nameWarrior, int health, int damage, int armor, int potions) : base(nameWarrior, health, damage, armor)
+        {
+            _potions = potions;
+        }
+
+        public override void Info()
+        {
+            base.Info();
+            Console.WriteLine($"Зелья: {_potions}\nСпособность: Полное восстановление здоровье + баф");
+            Console.Write("--------------------------------------------------------------------");
+        }
+        public override void AbilityStrike()
+        {
+            if (_potions >= 10)
+            {
+                ChangeHealthAbilityStrike();
+                _potions -= 10;
+            }
+        }
+    }
+}
